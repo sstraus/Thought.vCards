@@ -47,7 +47,7 @@ namespace Thought.vCards
         /// </param>
         public vCardEmailAddress(string address)
         {
-            this.address = address == null ? string.Empty : address;
+            this.address = address ?? string.Empty;
             this.emailType = vCardEmailAddressType.Internet;
         }
 

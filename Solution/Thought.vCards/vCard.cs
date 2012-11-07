@@ -37,7 +37,7 @@ namespace Thought.vCards
     [Serializable]
     public class vCard
     {
-
+        private vCardVersion version;
         private vCardAccessClassification accessClassification;
         private string additionalNames;
         private DateTime? birthDate;
@@ -99,7 +99,7 @@ namespace Thought.vCards
             this.timeZone = string.Empty;
             this.title = string.Empty;
             this.uniqueId = string.Empty;
-
+            this.version = vCardVersion.Version2;
             this.categories = new StringCollection();
             this.certificates = new vCardCertificateCollection();
             this.deliveryAddresses = new vCardDeliveryAddressCollection();
@@ -150,6 +150,20 @@ namespace Thought.vCards
 
         }
 
+        /// <summary>
+        /// The version of vCard specifications to implement.
+        /// </summary>
+        public vCardVersion Version
+        {
+            get
+            {
+                return this.version;
+            }
+            set
+            {
+                this.version = value;
+            }
+        }
 
         /// <summary>
         ///     The security access classification of the vCard owner (e.g. private).

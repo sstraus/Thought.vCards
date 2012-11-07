@@ -90,8 +90,16 @@ namespace Thought.vCards
         /// <summary>
         ///     An X.400 service email address.
         /// </summary>
-        X400
+        X400,
 
+        /// <summary>
+        ///     V3 for Work
+        /// </summary>
+        Work,
+        /// <summary>
+        ///     V3 for Home
+        /// </summary>
+        Home
     }
 
 }

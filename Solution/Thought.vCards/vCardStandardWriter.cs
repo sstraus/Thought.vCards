@@ -6,6 +6,7 @@
  * ======================================================================= */
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -17,7 +18,7 @@ namespace Thought.vCards
     /// </summary>
     public class vCardStandardWriter : vCardWriter
     {
-
+        private vCardVersion version = vCardVersion.Version2;
         private bool embedInternetImages;
         private bool embedLocalImages;
         private vCardStandardWriterOptions options;
@@ -156,6 +157,9 @@ namespace Thought.vCards
             // See section 2.1.1 of RFC 2426.
 
             properties.Add(new vCardProperty("BEGIN", "VCARD"));
+            BuildProperties_VERSION(properties,
+                                    card);
+                
 
             BuildProperties_NAME(
                 properties,
@@ -257,7 +261,7 @@ namespace Thought.vCards
                 properties,
                 card);
 
-            BuildProperties_X_WAB_GENDER(
+            BuildProperties_GENDER(
                 properties,
                 card);
 
@@ -269,6 +273,29 @@ namespace Thought.vCards
         }
 
         #endregion
+
+        void BuildProperties_VERSION(vCardPropertyCollection properties, vCard card)
+        {
+            var property = new vCardProperty("VERSION", "");
+            switch (card.Version)
+            {
+                case vCardVersion.Version2:
+                    property.Value = "2.0";
+                    break;
+                case vCardVersion.Version3:
+                    property.Value = "3.0";
+                    break;
+                case vCardVersion.Version4:
+                    throw new Exception("Not supported");
+                    property.Value = "4.0";
+                    break;
+                default:
+                    property.Value = "2.0";
+                    break;
+            }
+
+            properties.Add(property);
+        }
 
         #region [ BuildProperties_ADR ]
 
@@ -364,7 +391,7 @@ namespace Thought.vCards
             {
 
                 vCardProperty property =
-                    new vCardProperty("BDAY", card.BirthDate.Value);
+                    new vCardProperty("BDAY", card.BirthDate.Value.ToString(card.Version == vCardVersion.Version2 ? "yyyyMMdd" : "yyyy-MM-dd", CultureInfo.InvariantCulture));
 
                 properties.Add(property);
             }
@@ -465,11 +492,6 @@ namespace Thought.vCards
                 property.Name = "EMAIL";
                 property.Value = emailAddress.Address;
 
-                if (emailAddress.IsPreferred)
-                {
-                    property.Subproperties.Add("PREF");
-                }
-
                 switch (emailAddress.EmailType)
                 {
 
@@ -521,11 +543,30 @@ namespace Thought.vCards
                         property.Subproperties.Add("X400");
                         break;
 
+                    //V3
+                    case vCardEmailAddressType.Work:
+                        if(version == vCardVersion.Version2)
+                            throw new Exception("vCardEmailAddressType.Work in not supported in vCard 2.0");
+                        property.Subproperties.Add("WORK");
+                        break;
+                    
+                    //V3
+                    case vCardEmailAddressType.Home:
+                        if(version == vCardVersion.Version2)
+                            throw new Exception("vCardEmailAddressType.Home in not supported in vCard 2.0");
+                        property.Subproperties.Add("HOME");
+                        break;
+
                     default:
                         property.Subproperties.Add("INTERNET");
                         break;
 
                 }
+                if (emailAddress.IsPreferred)
+                {
+                    property.Subproperties.Add("PREF");
+                }
+              
 
                 properties.Add(property);
 
@@ -970,13 +1011,12 @@ namespace Thought.vCards
             vCardPropertyCollection properties,
             vCard card)
         {
-
             if (card.RevisionDate.HasValue)
             {
 
                 vCardProperty property =
-                    new vCardProperty("REV", card.RevisionDate.Value.ToString());
-
+                    new vCardProperty("REV", card.RevisionDate.Value.ToUniversalTime().ToString(card.Version == vCardVersion.Version2 ? "yyyyMMddTHHmmssZ" : "yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+                
                 properties.Add(property);
 
             }
@@ -1206,31 +1246,49 @@ namespace Thought.vCards
 
         #endregion
 
-        #region [ BuildProperties_X_WAB_GENDER ]
+        #region [ BuildProperties_GENDER ]
 
-        private void BuildProperties_X_WAB_GENDER(
+        private void BuildProperties_GENDER(
             vCardPropertyCollection properties,
             vCard card)
         {
-
-            // The X-WAB-GENDER property is an extended (custom)
-            // property supported by Microsoft Outlook.
-
-            switch (card.Gender)
+            if (card.Version == vCardVersion.Version2)
             {
-                case vCardGender.Female:
-                    properties.Add(new vCardProperty("X-WAB-GENDER", "1"));
-                    break;
 
-                case vCardGender.Male:
-                    properties.Add(new vCardProperty("X-WAB-GENDER", "2"));
-                    break;
+                // The X-WAB-GENDER property is an extended (custom)
+                // property supported by Microsoft Outlook.
 
+                switch (card.Gender)
+                {
+                    case vCardGender.Female:
+                        properties.Add(new vCardProperty("X-WAB-GENDER", "1"));
+                        break;
+
+                    case vCardGender.Male:
+                        properties.Add(new vCardProperty("X-WAB-GENDER", "2"));
+                        break;
+
+                }
+            }
+            else
+            {
+                switch (card.Gender)
+                {
+                    case vCardGender.Female:
+                        properties.Add(new vCardProperty("GENDER", "F"));
+                        break;
+
+                    case vCardGender.Male:
+                        properties.Add(new vCardProperty("GENDER", "M"));
+                        break;
+
+                }
             }
 
         }
 
         #endregion
+
 
         // The next set of functions translate raw values into
         // various string encodings.  A vCard file is a text file
@@ -1457,7 +1515,7 @@ namespace Thought.vCards
         /// </summary>
         public string EncodeProperty(vCardProperty property)
         {
-
+            
             if (property == null)
                 throw new ArgumentNullException("property");
 
@@ -1467,10 +1525,14 @@ namespace Thought.vCards
             StringBuilder builder = new StringBuilder();
 
             builder.Append(property.Name);
-
+            bool first = (property.Name=="TEL" || property.Name=="ADR" || property.Name=="LABEL" || property.Name=="EMAIL");
+            bool useComma = false;
             foreach (vCardSubproperty subproperty in property.Subproperties)
             {
-                builder.Append(';');
+                builder.Append(useComma?',':';');
+                useComma = false;
+                if (first && this.version != vCardVersion.Version2) 
+                    builder.Append("TYPE=");
                 builder.Append(subproperty.Name);
 
                 if (!string.IsNullOrEmpty(subproperty.Value))
@@ -1478,6 +1540,9 @@ namespace Thought.vCards
                     builder.Append('=');
                     builder.Append(subproperty.Value);
                 }
+                else
+                    useComma = true;
+                first = false;
             }
 
             // The property name and all subproperties have been
@@ -1570,7 +1635,7 @@ namespace Thought.vCards
         /// </summary>
         public override void Write(vCard card, TextWriter output)
         {
-
+            this.version = card.Version;
             if (card == null)
                 throw new ArgumentNullException("card");
 
@@ -1592,6 +1657,25 @@ namespace Thought.vCards
         public void Write(vCardPropertyCollection properties, TextWriter output)
         {
 
+            if (properties == null)
+                throw new ArgumentNullException("properties");
+
+            if (output == null)
+                throw new ArgumentNullException("output");
+
+            foreach (vCardProperty property in properties)
+            {
+                output.WriteLine(EncodeProperty(property));
+            }
+
+        }
+
+        /// <summary>
+        ///     Writes a collection of vCard properties to an output text writer.
+        /// </summary>
+        public void Write(vCardPropertyCollection properties, vCardVersion vCardVersion, TextWriter output)
+        {
+            this.version = vCardVersion;
             if (properties == null)
                 throw new ArgumentNullException("properties");
 
