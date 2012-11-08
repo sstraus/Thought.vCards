@@ -2,6 +2,7 @@
 /* =======================================================================
  * vCard Library for .NET
  * Copyright (c) 2007-2009 David Pinch; http://wwww.thoughtproject.com
+ * Support for vCard 3.0 added by Stefano Straus
  * See LICENSE.TXT for licensing information.
  * ======================================================================= */
 
@@ -115,6 +116,54 @@ namespace Thought.vCards
             set
             {
                 this.isPreferred = value;
+            }
+        }
+
+        /// <summary>
+        ///     Indicates a work email.
+        /// </summary>
+        /// <seealso cref="IsHome"/>
+        /// <seealso cref="vCardEmailAddressType"/>
+        public bool IsWork
+        {
+            get
+            {
+                return (this.emailType & vCardEmailAddressType.Work) == vCardEmailAddressType.Work;
+            }
+            set
+            {
+                if (value)
+                {
+                    this.emailType = this.emailType | vCardEmailAddressType.Work;
+                }
+                else
+                {
+                    this.emailType = this.emailType & ~vCardEmailAddressType.Work;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Indicates a home email.
+        /// </summary>
+        /// <seealso cref="IsHome"/>
+        /// <seealso cref="vCardEmailAddressType"/>
+        public bool IsHome
+        {
+            get
+            {
+                return (this.emailType & vCardEmailAddressType.Home) == vCardEmailAddressType.Home;
+            }
+            set
+            {
+                if (value)
+                {
+                    this.emailType = this.emailType | vCardEmailAddressType.Home;
+                }
+                else
+                {
+                    this.emailType = this.emailType & ~vCardEmailAddressType.Home;
+                }
             }
         }
 

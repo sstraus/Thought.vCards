@@ -2,6 +2,8 @@
 vCard Class Library for .NET (Version 0.4; LGPL license)
 Copyright (c) 2007-2009 David Pinch * http://www.thoughtproject.com/Libraries/vCard/
 
+Support for vCard 3.0 added by Stefano Straus
+
 Introduction
 
     This is a simple library for manipulating vCards.  A vCard is used to exchange

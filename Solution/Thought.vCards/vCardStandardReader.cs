@@ -1,10 +1,13 @@
 /* =======================================================================
  * vCard Library for .NET
  * Copyright (c) 2007-2009 David Pinch; http://wwww.thoughtproject.com
+ * Support for vCard 3.0 added by Stefano Straus
  * See LICENSE.TXT for licensing information.
  * ======================================================================= */
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -157,6 +160,14 @@ namespace Thought.vCards
 
             switch (keyword.ToUpperInvariant())
             {
+                case "WORK":
+                    return vCardEmailAddressType.Work;
+
+                case "HOME":
+                    return vCardEmailAddressType.Home;
+
+                case "OTHER":
+                    return vCardEmailAddressType.Other;
 
                 case "INTERNET":
                     return vCardEmailAddressType.Internet;
@@ -202,7 +213,7 @@ namespace Thought.vCards
 
         }
 
-        #endregion
+        #endregion    
 
         #region [ DecodeEscaped ]
 
@@ -1008,6 +1019,10 @@ namespace Thought.vCards
                     ReadInto_EMAIL(card, property);
                     break;
 
+                case "X-SOCIALPROFILE":
+                    ReadInto_X_SOCIALPROFILE(card, property);
+                    break;
+                    
                 case "FN":
                     ReadInto_FN(card, property);
                     break;
@@ -1374,6 +1389,7 @@ namespace Thought.vCards
                         email.IsPreferred = true;
                         break;
 
+
                     case "TYPE":
 
                         // The TYPE subproperty is new in vCard 3.0.
@@ -1411,7 +1427,7 @@ namespace Thought.vCards
                             DecodeEmailAddressType(subproperty.Name);
 
                         if (emailType.HasValue)
-                            email.EmailType = emailType.Value;
+                            email.EmailType |= emailType.Value;
 
                         break;
 
@@ -1420,6 +1436,74 @@ namespace Thought.vCards
             }
 
             card.EmailAddresses.Add(email);
+
+        }
+
+        #endregion
+        #region [ ReadInto_X_SOCIALPROFILE ]
+
+        /// <summary>
+        ///     Reads a SOCIALPROFILE property.
+        /// </summary>
+        private void ReadInto_X_SOCIALPROFILE(vCard card, vCardProperty property)
+        {
+
+            var profile = new vCardSocialProfile();
+
+            // The social address is stored as the value of the property.
+            // The format of the address depends on the type of social
+            // address.  The current version of the library does not
+            // perform any validation.
+
+            profile.Address = property.Value.ToString();
+
+            // Loop through each subproperty and look for flags
+            // that indicate the type of social address.
+
+            foreach (vCardSubproperty subproperty in property.Subproperties)
+            {
+                vCardSocialProfileType? profileType = vCardSocialProfileType.Other;
+                switch (subproperty.Name.ToUpperInvariant())
+                {
+
+                    case "PREF":
+
+                        // The PREF subproperty indicates the social
+                        // address is the preferred social address to
+                        // use when contacting the person.
+
+                        profile.IsPreferred = true;
+                        break;
+
+                    default:
+
+                        if (subproperty.Name.StartsWith("X-", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (profile.Attributes==null)profile.Attributes = new Dictionary<string, string>();
+                            profile.Attributes.Add(subproperty.Name.ToUpperInvariant(), subproperty.Value);
+                        }
+                        else
+                        {
+
+
+                            // All other subproperties are probably vCard 2.1
+                            // subproperties.  This was before the social type
+                            // was supposed to be specified with TYPE=VALUE.
+                            try
+                            {
+                                profileType = (vCardSocialProfileType?) Enum.Parse(typeof (vCardSocialProfileType), subproperty.Name, true);
+                            }
+                            catch (ArgumentException)
+                            {
+                            }
+                            profile.ProfileType = profileType.Value;
+                        }
+                        break;
+
+                }
+            }
+
+            card.SocialProfiles.Add(profile);
 
         }
 
@@ -1988,7 +2072,7 @@ namespace Thought.vCards
 
         #endregion 
         
-        #region [ ReadInto_X_WAB_GENDER ]
+        #region [ ReadInto_GENDER ]
 
         /// <summary>
         ///     Reads the GENDER property.
@@ -2149,7 +2233,8 @@ namespace Thought.vCards
                         // a name only.
 
                         property.Subproperties.Add(
-                            nameParts[index].Trim());
+                            subNameValue[0].Trim());
+                            //nameParts[index].Trim());
                     }
                     else
                     {

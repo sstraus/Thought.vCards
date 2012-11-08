@@ -2,6 +2,7 @@
 /* =======================================================================
  * vCard Library for .NET
  * Copyright (c) 2007-2009 David Pinch; http://wwww.thoughtproject.com
+ * Support for vCard 3.0 added by Stefano Straus
  * See LICENSE.TXT for licensing information.
  * ======================================================================= */
 
@@ -67,6 +68,7 @@ namespace Thought.vCards
         private vCardDeliveryAddressCollection deliveryAddresses;
         private vCardDeliveryLabelCollection deliveryLabels;
         private vCardEmailAddressCollection emailAddresses;
+        private vCardSocialProfileCollection socialProfiles;
         private vCardNoteCollection notes;
         private vCardPhoneCollection phones;
         private vCardPhotoCollection photos;
@@ -105,6 +107,7 @@ namespace Thought.vCards
             this.deliveryAddresses = new vCardDeliveryAddressCollection();
             this.deliveryLabels = new vCardDeliveryLabelCollection();
             this.emailAddresses = new vCardEmailAddressCollection();
+            this.socialProfiles = new vCardSocialProfileCollection();
             this.nicknames = new StringCollection();
             this.notes = new vCardNoteCollection();
             this.phones = new vCardPhoneCollection();
@@ -320,6 +323,17 @@ namespace Thought.vCards
             }
         }
 
+        /// <summary>
+        ///     A collection of <see cref="vCardSocialProfile"/> objects for the person.
+        /// </summary>
+        /// <seealso cref="vCardEmailAddress"/>
+        public vCardSocialProfileCollection SocialProfiles
+        {
+            get
+            {
+                return this.socialProfiles;
+            }
+        }
 
         /// <summary>
         ///     The family (last) name of the person.

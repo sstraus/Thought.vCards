@@ -2,6 +2,7 @@
 /* =======================================================================
  * vCard Library for .NET
  * Copyright (c) 2007-2009 David Pinch; http://wwww.thoughtproject.com
+ * Support for vCard 3.0 added by Stefano Straus
  * See LICENSE.TXT for licensing information.
  * ======================================================================= */
 
@@ -38,6 +39,12 @@ namespace Thought.vCards
         ///     Indicates a cell phone.
         /// </summary>
         Cellular = 4,
+
+        /// <summary>
+        ///     Indicates a cell phone alias.
+        /// </summary>
+        Cell = Cellular,
+
 
         /// <summary>
         ///     Indicates a celluar voice number.

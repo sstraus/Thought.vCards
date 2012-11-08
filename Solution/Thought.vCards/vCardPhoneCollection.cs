@@ -2,6 +2,7 @@
 /* =======================================================================
  * vCard Library for .NET
  * Copyright (c) 2007-2009 David Pinch; http://wwww.thoughtproject.com
+ * Support for vCard 3.0 added by Stefano Straus
  * See LICENSE.TXT for licensing information.
  * ======================================================================= */
 

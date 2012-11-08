@@ -2,6 +2,7 @@
 vCard Class Library for .NET
 Copyright (c) 2007-2009 David Pinch (davepinch@gmail.com).
 
+Support for vCard 3.0 added by Stefano Straus
 
 Please refer to README.TXT in the distribution archive.  If you do
 not have a copy of the archive, you may download the latest version
@@ -9,6 +10,7 @@ of this library from http://www.thoughtproject.com/Libraries/vCard/
 This library is distributed under the terms of the Lesser General
 Public License.  Please refer to LICENSE.TXT for the exact terms.
 
+Support for vCard 3.0 added by Stefano Straus
 
 History
 

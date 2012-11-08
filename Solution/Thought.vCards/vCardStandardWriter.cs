@@ -2,6 +2,7 @@
 /* =======================================================================
  * vCard Library for .NET
  * Copyright (c) 2007-2009 David Pinch; http://wwww.thoughtproject.com
+ * Support for vCard 3.0 added by Stefano Straus
  * See LICENSE.TXT for licensing information.
  * ======================================================================= */
 
@@ -197,6 +198,10 @@ namespace Thought.vCards
                 properties,
                 card);
 
+            BuildProperties_X_SOCIALPROFILE(
+                properties,
+                card);
+
             BuildProperties_GEO(
                 properties,
                 card);
@@ -287,8 +292,8 @@ namespace Thought.vCards
                     break;
                 case vCardVersion.Version4:
                     throw new Exception("Not supported");
-                    property.Value = "4.0";
-                    break;
+                    //property.Value = "4.0";
+                    //break;
                 default:
                     property.Value = "2.0";
                     break;
@@ -567,6 +572,71 @@ namespace Thought.vCards
                     property.Subproperties.Add("PREF");
                 }
               
+
+                properties.Add(property);
+
+            }
+
+        }
+
+        #endregion
+
+        #region [ BuildProperties_X_SOCIALPROFILE ]
+
+        /// <summary>
+        ///     Builds X-SOCIALPROFILE properties.
+        /// </summary>
+        private void BuildProperties_X_SOCIALPROFILE(
+            vCardPropertyCollection properties,
+            vCard card)
+        {
+
+            foreach (vCardSocialProfile socialProfile in card.SocialProfiles)
+            {
+
+                vCardProperty property = new vCardProperty();
+                property.Name = "X-SOCIALPROFILE";
+                property.Value = socialProfile.Address;
+
+                property.Subproperties.Add("X-USER", socialProfile.UserName);
+
+                switch (socialProfile.ProfileType)
+                {
+
+                    case vCardSocialProfileType.Facebook:
+                        property.Subproperties.Add("Facebook");
+                        break;
+
+                    case vCardSocialProfileType.Flickr:
+                        property.Subproperties.Add("Flickr");
+                        break;
+
+                    case vCardSocialProfileType.Linkedin:
+                        property.Subproperties.Add("LinkedIn");
+                        break;
+
+                    case vCardSocialProfileType.Myspace:
+                        property.Subproperties.Add("MySpace");
+                        break;
+
+                    case vCardSocialProfileType.Other:
+                        property.Subproperties.Add("Other");
+                        break;
+
+                    case vCardSocialProfileType.Sinaweibo:
+                        property.Subproperties.Add("Sinaweibo");
+                        break;
+
+                    case vCardSocialProfileType.Twitter:
+                        property.Subproperties.Add("Twitter");
+                        break;
+                }
+
+                if (socialProfile.IsPreferred)
+                {
+                    property.Subproperties.Add("PREF");
+                }
+
 
                 properties.Add(property);
 
